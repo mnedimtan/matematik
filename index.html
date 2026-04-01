@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Çoklu Matematik Oyunu</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            display: flex; flex-direction: column; 
+            height: 100vh; height: 100dvh;
+            user-select: none; -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        /* --- Dikey (Portrait) Ekran Uyarısı --- */
+        #portrait-warning {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #2c3e50; color: white; z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center;
+            font-size: clamp(24px, 6vw, 40px); font-weight: bold; text-align: center; padding: 20px;
+        }
+        #portrait-warning span { font-size: clamp(50px, 15vw, 100px); margin-bottom: 20px; animation: rotatePhone 2s infinite ease-in-out; }
+        
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Telefon dikey tutulduğunda uyarıyı göster */
+        @media screen and (orientation: portrait) {
+            #portrait-warning { display: flex; }
+        }
+
+        /* --- Menü Ekranları --- */
+        .menu-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            height: 100%; text-align: center; 
+            padding: clamp(20px, 5vh, 40px) 20px;
+            position: relative;
+            overflow-y: auto; 
+        }
+        .menu-title { 
+            font-size: clamp(24px, 6vmin, 45px); /* Ekran boyutuna göre otomatik ölçeklenir */
+            font-weight: 900; color: #2c3e50; margin-top: 0; margin-bottom: clamp(15px, 3vh, 25px); flex-shrink: 0; 
+        }
+        .menu-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 2vmin, 20px); width: 100%; max-width: 800px; flex-shrink: 0;
+        }
+        
+        .name-inputs {
+            display: flex; flex-direction: column; gap: clamp(10px, 2vh, 20px); width: 100%; max-width: 500px; margin-bottom: 25px; flex-shrink: 0;
+        }
+        .name-input-group {
+            display: flex; flex-direction: column; gap: 8px; text-align: left;
+        }
+        .name-input-group label { font-size: clamp(16px, 3vmin, 24px); font-weight: bold; color: #2c3e50; }
+        .name-input-group input {
+            padding: clamp(10px, 2vmin, 15px); font-size: clamp(18px, 3.5vmin, 28px); border: 3px solid #bdc3c7; border-radius: 8px; text-align: center; font-weight: bold;
+            background: #ecf0f1; width: 100%;
+        }
+        .name-input-group input:focus { outline: none; border-color: #34495e; }
+        #label-red { color: #e74c3c; }
+        #label-blue { color: #3498db; }
+
+        .menu-btn {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            padding: clamp(15px, 3vmin, 25px) clamp(10px, 2vmin, 20px); border: none; border-radius: 12px;
+            background: #34495e; color: white; cursor: pointer; box-shadow: 0 clamp(4px, 1vmin, 6px) 0 #2c3e50;
+        }
+        .menu-btn:active { transform: translateY(clamp(4px, 1vmin, 6px)); box-shadow: 0 0 0 #2c3e50; }
+        .menu-btn.red { background: #e74c3c; box-shadow: 0 clamp(4px, 1vmin, 6px) 0 #c0392b; }
+        .menu-btn.blue { background: #3498db; box-shadow: 0 clamp(4px, 1vmin, 6px) 0 #2980b9; }
+        .menu-btn.alt { background: #e67e22; box-shadow: 0 clamp(4px, 1vmin, 6px) 0 #d35400; }
+        .menu-btn.alt2 { background: #9b59b6; box-shadow: 0 clamp(4px, 1vmin, 6px) 0 #8e44ad; }
+        
+        .btn-title { font-size: clamp(16px, 3.5vmin, 28px); font-weight: bold; }
+        .btn-desc { font-size: clamp(12px, 2vmin, 18px); font-weight: normal; opacity: 0.9; line-height: 1.3; }
+
+        .back-btn { margin-top: clamp(15px, 3vh, 30px); padding: 10px 25px; background: #7f8c8d; border: none; border-radius: 8px; color: white; font-size: clamp(14px, 2.5vmin, 22px); font-weight: bold; cursor: pointer; flex-shrink: 0;}
+        .back-btn:active { transform: translateY(4px); }
+
+        .footer-credit {
+            margin-top: auto; 
+            margin-bottom: 10px;
+            font-size: clamp(12px, 2.5vmin, 20px);
+            color: #2c3e50; font-weight: 700; line-height: 1.6; text-align: center;
+            background: rgba(255, 255, 255, 0.4); 
+            padding: clamp(8px, 1.5vmin, 12px) clamp(15px, 3vmin, 25px);
+            border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%; max-width: 500px; flex-shrink: 0; 
+        }
+        .footer-credit a { color: #c0392b; text-decoration: none; font-weight: 900; }
+        .footer-credit a:hover { text-decoration: underline; }
+
+        /* --- Oyun Arenası --- */
+        #game-arena { display: none; flex-direction: column; height: 100%; position: relative; }
+        
+        .scoreboard {
+            height: clamp(60px, 20vh, 120px); background: #ecf0f1; border-bottom: 4px solid #bdc3c7;
+            display: flex; flex-direction: column; justify-content: center; padding: 5px clamp(10px, 2vw, 20px);
+        }
+        .status-title { text-align: center; font-size: clamp(14px, 3vmin, 24px); font-weight: bold; color: #333; margin-bottom: clamp(2px, 1vh, 8px); }
+        
+        .indicator-row { display: flex; align-items: center; margin: clamp(2px, 0.5vh, 5px) 0; }
+        .player-label { width: clamp(80px, 15vw, 150px); font-weight: bold; font-size: clamp(14px, 3.5vmin, 30px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #2c3e50; }
+        
+        .progress-bar { 
+            flex: 1; height: clamp(20px, 4vmin, 35px); background: #ddd; border-radius: 20px; overflow: hidden; position: relative; 
+            border: clamp(2px, 0.5vmin, 3px) solid #95a5a6; box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .progress-fill { 
+            height: 100%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.25) 75%, transparent 75%, transparent);
+            background-size: clamp(20px, 4vmin, 40px) clamp(20px, 4vmin, 40px);
+            animation: moveStripes 1s linear infinite;
+        }
+        
+        .fill-left { background-color: #e74c3c; width: 0%; border-right: 3px solid #c0392b; }
+        .fill-right { background-color: #3498db; width: 0%; border-right: 3px solid #2980b9; }
+
+        @keyframes moveStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: clamp(20px, 4vmin, 40px) 0; }
+        }
+
+        .halat-center { position: absolute; width: clamp(2px, 0.5vmin, 4px); height: 100%; background: #34495e; left: 50%; transform: translateX(-50%); z-index: 1;}
+        .halat-marker { 
+            position: absolute; width: clamp(20px, 4vmin, 30px); height: clamp(20px, 4vmin, 30px); background: #f1c40f; border: clamp(2px, 0.5vmin, 4px) solid #d35400; border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .score-text { width: clamp(30px, 6vw, 60px); text-align: center; font-weight: bold; font-size: clamp(14px, 3.5vmin, 30px); background: #fff; border-radius: 8px; margin-left: clamp(5px, 1vw, 10px); border: 2px solid #ccc;}
+
+        .play-area { display: flex; flex: 1; height: 100%; overflow: hidden; }
+        .player-panel { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(5px, 1vw, 15px); position: relative; }
+        .left-panel { background: rgba(253, 237, 236, 0); border-right: 3px dashed #bdc3c7; }
+        .right-panel { background: rgba(235, 245, 251, 0); border-left: 3px dashed #bdc3c7; margin-left: -3px; }
+        
+        .panel-name { 
+            position: absolute; top: 50%; 
+            font-size: clamp(24px, 6vmin, 50px); 
+            font-weight: 900; color: #2c3e50; letter-spacing: 2px; opacity: 0.9;
+        }
+        #panel-name-L { right: clamp(5px, 2vw, 20px); transform: translateY(-50%) rotate(-90deg); }
+        #panel-name-R { left: clamp(5px, 2vw, 20px); transform: translateY(-50%) rotate(90deg); }
+
+        .question-box { font-size: clamp(30px, 8vmin, 60px); font-weight: bold; color: #2c3e50; margin-bottom: clamp(10px, 2vh, 20px); text-align: center; }
+        .answer-box { 
+            font-size: clamp(24px, 6vmin, 50px); 
+            width: clamp(100px, 25vmin, 180px); 
+            height: clamp(50px, 12vmin, 80px); 
+            background: white; border: 4px solid #7f8c8d; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            margin-bottom: clamp(10px, 2vh, 25px); font-weight: bold; color:#000; 
+        }
+        
+        .keypad { 
+            display: grid; grid-template-columns: repeat(3, 1fr); 
+            gap: clamp(8px, 2vmin, 15px); 
+            width: 100%; max-width: clamp(200px, 45vmin, 320px); 
+            padding: clamp(5px, 2vmin, 20px);
+            justify-content: center;
+        }
+        
+        .key-btn { 
+            aspect-ratio: 1/1; 
+            border: none; border-radius: 50%; font-weight: bold; cursor: pointer; 
+            box-shadow: clamp(2px, 0.5vmin, 4px) clamp(2px, 0.5vmin, 4px) clamp(3px, 1vmin, 6px) rgba(0,0,0,0.2), 
+                        calc(clamp(2px, 0.5vmin, 4px) * -1) calc(clamp(2px, 0.5vmin, 4px) * -1) clamp(3px, 1vmin, 6px) rgba(255,255,255,0.8);
+            transition: transform 0.1s, box-shadow 0.1s;
+            touch-action: none; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .key-btn:active, .key-btn.pressed { 
+            transform: scale(0.95);
+            box-shadow: inset clamp(2px, 0.5vmin, 4px) clamp(2px, 0.5vmin, 4px) clamp(3px, 1vmin, 6px) rgba(0,0,0,0.2), 
+                        inset calc(clamp(2px, 0.5vmin, 4px) * -1) calc(clamp(2px, 0.5vmin, 4px) * -1) clamp(3px, 1vmin, 6px) rgba(255,255,255,0.8);
+        }
+
+        .key-btn.num { font-size: clamp(20px, 5vmin, 45px); color: #2c3e50; background: #ecf0f1; }
+        .key-btn.ctrl { font-size: clamp(14px, 3.5vmin, 28px); color: white; background: #2980b9; }
+        .key-btn.git { font-size: clamp(16px, 4vmin, 35px); color: white; background: #e67e22; }
+        
+        .shake { animation: shake 0.4s; border-color: #e74c3c !important; color: #e74c3c; background: #fadbd8; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-8px); } 100% { transform: translateX(0); } }
+
+        #countdown-overlay {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.9);
+            z-index: 50; flex-direction: column; align-items: center; justify-content: center; color: white;
+        }
+        #countdown-text { font-size: clamp(100px, 30vmin, 200px); font-weight: bold; text-shadow: clamp(2px, 0.5vmin, 6px) clamp(2px, 0.5vmin, 6px) 0 #000; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.8); } 50% { transform: scale(1.2); } 100% { transform: scale(0.8); } }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;}
+        .modal h1 { font-size: clamp(30px, 8vmin, 60px); margin-bottom: 10px; }
+        .modal p { font-size: clamp(16px, 4vmin, 30px); margin-bottom: 30px; opacity: 0.9; }
+        .modal button { padding: clamp(10px, 2vmin, 20px) clamp(20px, 5vmin, 40px); font-size: clamp(16px, 4vmin, 30px); background: #2ecc71; font-weight: bold; border: none; border-radius: 12px; color: white; cursor: pointer; margin: 5px; box-shadow: 0 6px 0 #27ae60;}
+        .modal button:active { transform: translateY(6px); box-shadow: 0 0 0 #27ae60; }
+        .modal-buttons { display: flex; gap: clamp(10px, 2vw, 20px); flex-wrap: wrap; justify-content: center;}
+
+        #bottom-controls {
+            display: none; 
+            position: absolute; bottom: clamp(10px, 3vh, 30px); left: 50%; transform: translateX(-50%); 
+            display: flex; gap: clamp(10px, 2vw, 20px); z-index: 60;
+        }
+        .bottom-btn {
+            font-size: clamp(12px, 2.5vmin, 20px); font-weight: bold; color: white; cursor: pointer; border: none; border-radius: 50px;
+            padding: clamp(8px, 1.5vmin, 15px) clamp(15px, 3vmin, 30px); 
+            box-shadow: 4px 4px 6px rgba(0,0,0,0.2), -4px -4px 6px rgba(255,255,255,0.8);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .bottom-btn:active, .bottom-btn.pressed { 
+            transform: scale(0.95); 
+            box-shadow: inset 4px 4px 6px rgba(0,0,0,0.2), inset -4px -4px 6px rgba(255,255,255,0.8); 
+        }
+        #fullscreen-btn { background: #34495e; }
+        #home-btn { background: #e67e22; }
+
+    </style>
+</head>
+<body>
+
+    <div id="portrait-warning">
+        <span>🔄</span>
+        Lütfen Cihazınızı Yatay Çevirin
+    </div>
+
+    <div id="menu-1" class="menu-screen">
+        <h1 class="menu-title">Yarışmacılar Hazır Mı?</h1>
+        <div class="name-inputs">
+            <div class="name-input-group">
+                <label id="label-red">Kırmızı Oyuncu Adı:</label>
+                <input type="text" id="input-name-L" placeholder="Örn: Betül" maxlength="12">
+            </div>
+            <div class="name-input-group">
+                <label id="label-blue">Mavi Oyuncu Adı:</label>
+                <input type="text" id="input-name-R" placeholder="Örn: Batu" maxlength="12">
+            </div>
+        </div>
+        <button class="menu-btn" style="width: 100%; max-width: 400px; padding: clamp(15px, 3vh, 25px);" onclick="saveNames()">
+            <span class="btn-title">Devam Et 🚀</span>
+        </button>
+
+        <div class="footer-credit">
+            Oyun Tasarımı: Fungineer<br>
+            YouTube'da Takip Edin: <a href="https://www.youtube.com/@FungineerTR" target="_blank">@FungineerTR</a>
+        </div>
+    </div>
+
+    <div id="menu-2" class="menu-screen" style="display:none;">
+        <h1 class="menu-title">1. Oyunu Seçin</h1>
+        <div class="menu-grid">
+            <button class="menu-btn" onclick="setGame('halat')">
+                <span class="btn-title">Halat Çekme</span>
+                <span class="btn-desc">İpi kendi tarafına çek! (5 Fark)</span>
+            </button>
+            <button class="menu-btn alt" onclick="setGame('yaris')">
+                <span class="btn-title">Çuval Yarışı</span>
+                <span class="btn-desc">Bitişe ilk sen ulaş! (10 Puan)</span>
+            </button>
+            <button class="menu-btn alt2" style="grid-column: span 2;" onclick="setGame('direk')">
+                <span class="btn-title">Yağlı Direk</span>
+                <span class="btn-desc">Zirveye tırman ama dikkat et, yanlış cevap kaydırır! (8 Puan)</span>
+            </button>
+        </div>
+        <button class="back-btn" onclick="goBack(1)">← Geri</button>
+
+        <div class="footer-credit">
+            Oyun Tasarımı: Fungineer<br>
+            YouTube'da Takip Edin: <a href="https://www.youtube.com/@FungineerTR" target="_blank">@FungineerTR</a>
+        </div>
+    </div>
+
+    <div id="menu-3" class="menu-screen" style="display:none;">
+        <h1 class="menu-title">2. İşlemi Seçin</h1>
+        <div class="menu-grid">
+            <button class="menu-btn red" onclick="setOp('toplama')">
+                <span class="btn-title">➕ Toplama</span>
+                <span class="btn-desc">Sayıları birbirine ekle.</span>
+            </button>
+            <button class="menu-btn blue" onclick="setOp('cikarma')">
+                <span class="btn-title">➖ Çıkarma</span>
+                <span class="btn-desc">Büyük sayıdan küçüğü çıkar.</span>
+            </button>
+            <button class="menu-btn alt" onclick="setOp('carpma')">
+                <span class="btn-title">✖️ Çarpma</span>
+                <span class="btn-desc">Sayıları birbiriyle çarp.</span>
+            </button>
+            <button class="menu-btn alt2" onclick="setOp('bolme')">
+                <span class="btn-title">➗ Bölme</span>
+                <span class="btn-desc">Sayıyı eksiksiz olarak böl.</span>
+            </button>
+        </div>
+        <button class="back-btn" onclick="goBack(2)">← Geri</button>
+
+        <div class="footer-credit">
+            Oyun Tasarımı: Fungineer<br>
+            YouTube'da Takip Edin: <a href="https://www.youtube.com/@FungineerTR" target="_blank">@FungineerTR</a>
+        </div>
+    </div>
+
+    <div id="menu-4" class="menu-screen" style="display:none;">
+        <h1 class="menu-title">3. Zorluk Seviyesi</h1>
+        <div class="menu-grid" style="grid-template-columns: 1fr;">
+            <button class="menu-btn" onclick="setDiff('kolay')">
+                <span class="btn-title">Kolay</span>
+                <span class="btn-desc">Hızlı ve basit! (1 Basamaklı)</span>
+            </button>
+            <button class="menu-btn alt" onclick="setDiff('orta')">
+                <span class="btn-title">Orta</span>
+                <span class="btn-desc">Düşünme vakti! (1 ve 2 Basamaklı)</span>
+            </button>
+            <button class="menu-btn red" onclick="setDiff('zor')">
+                <span class="btn-title">Zor</span>
+                <span class="btn-desc">Şampiyonlar için! (2 Basamaklı)</span>
+            </button>
+        </div>
+        <button class="back-btn" onclick="goBack(3)">← Geri</button>
+
+        <div class="footer-credit">
+            Oyun Tasarımı: Fungineer<br>
+            YouTube'da Takip Edin: <a href="https://www.youtube.com/@FungineerTR" target="_blank">@FungineerTR</a>
+        </div>
+    </div>
+
+    <div id="game-arena">
+        
+        <div id="countdown-overlay">
+            <div id="countdown-text">3</div>
+        </div>
+
+        <div class="scoreboard">
+            <div id="game-status-text" class="status-title">Oyun Hazırlanıyor...</div>
+            
+            <div id="bar-view-dual" style="display:none;">
+                <div class="indicator-row">
+                    <span id="score-name-L" class="player-label" style="color:#c0392b;">Betül</span>
+                    <div class="progress-bar"><div id="fill-L" class="progress-fill fill-left"></div></div>
+                    <span id="score-text-L" class="score-text">0</span>
+                </div>
+                <div class="indicator-row">
+                    <span id="score-name-R" class="player-label" style="color:#2980b9;">Batu</span>
+                    <div class="progress-bar"><div id="fill-R" class="progress-fill fill-right"></div></div>
+                    <span id="score-text-R" class="score-text">0</span>
+                </div>
+            </div>
+
+            <div id="bar-view-single" style="display:none;">
+                <div class="indicator-row">
+                    <span id="halat-name-L" class="player-label" style="color:#c0392b;">Betül</span>
+                    <div class="progress-bar" style="background: #bdc3c7; border-color: #7f8c8d;">
+                        <div class="halat-center"></div>
+                        <div id="halat-marker" class="halat-marker"></div>
+                    </div>
+                    <span id="halat-name-R" class="player-label" style="text-align:right; color:#2980b9;">Batu</span>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="play-area">
+            <div class="player-panel left-panel">
+                <div id="panel-name-L" class="panel-name">Betül</div>
+                <div class="question-box" id="q-left">Bekleniyor...</div>
+                <div class="answer-box" id="ans-left"></div>
+                <div class="keypad">
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '7')">7</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '8')">8</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '9')">9</button>
+                    
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '4')">4</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '5')">5</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '6')">6</button>
+                    
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '1')">1</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '2')">2</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '3')">3</button>
+                    
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'L', '0')">0</button>
+                    <button class="key-btn ctrl btn-clear" onpointerdown="clearAns(event, 'L')">Sil</button>
+                    <button class="key-btn git" onpointerdown="submitAns(event, 'L')">Git</button>
+                </div>
+            </div>
+
+            <div class="player-panel right-panel">
+                <div id="panel-name-R" class="panel-name">Batu</div>
+                <div class="question-box" id="q-right">Bekleniyor...</div>
+                <div class="answer-box" id="ans-right"></div>
+                <div class="keypad">
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '7')">7</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '8')">8</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '9')">9</button>
+                    
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '4')">4</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '5')">5</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '6')">6</button>
+                    
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '1')">1</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '2')">2</button>
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '3')">3</button>
+                    
+                    <button class="key-btn num" onpointerdown="pressKey(event, 'R', '0')">0</button>
+                    <button class="key-btn ctrl btn-clear" onpointerdown="clearAns(event, 'R')">Sil</button>
+                    <button class="key-btn git" onpointerdown="submitAns(event, 'R')">Git</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="bottom-controls">
+            <button id="fullscreen-btn" class="bottom-btn" onclick="toggleFullscreen()">Tam Ekran</button>
+            <button id="home-btn" class="bottom-btn" onclick="location.reload()">Menüye Dön</button>
+        </div>
+
+    </div>
+
+    <div id="modal" class="modal">
+        <h1 id="winner-text">Kazanan!</h1>
+        <p id="winner-subtext">Tebrikler!</p>
+        <div class="modal-buttons">
+            <button onclick="resetGame()">Rövanş!</button>
+            <button style="background:#e67e22; box-shadow: 0 6px 0 #d35400;" onclick="location.reload()">Oyun Değiştir</button>
+        </div>
+    </div>
+
+    <script>
+        let cfg = { game: '', op: '', diff: '' };
+        let names = { L: "Betül", R: "Batu" };
+        let scores = { L: 0, R: 0 }; 
+        let halatScore = 0; 
+        
+        let targetVals = { L: null, R: null };
+        let inputs = { L: "", R: "" };
+        let maxScore = 0;
+        let isGameActive = false;
+
+        function saveNames() {
+            let nL = document.getElementById('input-name-L').value.trim();
+            let nR = document.getElementById('input-name-R').value.trim();
+            if(nL) names.L = nL;
+            if(nR) names.R = nR;
+            
+            document.getElementById('score-name-L').innerText = names.L;
+            document.getElementById('score-name-R').innerText = names.R;
+            document.getElementById('halat-name-L').innerText = names.L;
+            document.getElementById('halat-name-R').innerText = names.R;
+            document.getElementById('panel-name-L').innerText = names.L;
+            document.getElementById('panel-name-R').innerText = names.R;
+
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Tam ekran yapılamadı: ${err.message}`);
+                });
+            }
+
+            switchMenu(1, 2);
+        }
+
+        function setGame(g) { cfg.game = g; switchMenu(2, 3); }
+        function setOp(o) { cfg.op = o; switchMenu(3, 4); }
+        function setDiff(d) { cfg.diff = d; switchMenu(4, 0); prepareGame(); }
+        function goBack(to) { switchMenu(to+1, to); }
+        function switchMenu(hide, show) {
+            document.getElementById(`menu-${hide}`).style.display = 'none';
+            if(show !== 0) document.getElementById(`menu-${show}`).style.display = 'flex';
+        }
+
+        function prepareGame() {
+            document.getElementById('game-arena').style.display = 'flex';
+            document.getElementById('bottom-controls').style.display = 'flex'; 
+            scores.L = 0; scores.R = 0; halatScore = 0;
+            isGameActive = false;
+            targetVals = { L: null, R: null };
+            document.getElementById('q-left').innerText = "Hazır...";
+            document.getElementById('q-right').innerText = "Hazır...";
+            inputs = { L: "", R: "" };
+            document.getElementById('ans-left').innerText = "";
+            document.getElementById('ans-right').innerText = "";
+
+            if (cfg.game === 'halat') {
+                maxScore = 5;
+                document.getElementById('game-status-text').innerText = "Halat Çekme (İlk 5 Fark Atan Kazanır)";
+                document.getElementById('bar-view-single').style.display = 'block';
+                document.getElementById('bar-view-dual').style.display = 'none';
+            } else if (cfg.game === 'yaris') {
+                maxScore = 10;
+                document.getElementById('game-status-text').innerText = "Çuval Yarışı (İlk 10 Puanı Alan Kazanır)";
+                document.getElementById('bar-view-dual').style.display = 'block';
+                document.getElementById('bar-view-single').style.display = 'none';
+            } else if (cfg.game === 'direk') {
+                maxScore = 8;
+                document.getElementById('game-status-text').innerText = "Yağlı Direk (8 Puan | Yanlışlar -1)";
+                document.getElementById('bar-view-dual').style.display = 'block';
+                document.getElementById('bar-view-single').style.display = 'none';
+            }
+
+            updateVisuals();
+            startCountdown();
+        }
+
+        function startCountdown() {
+            let overlay = document.getElementById('countdown-overlay');
+            let textEl = document.getElementById('countdown-text');
+            overlay.style.display = 'flex';
+            
+            let count = 3;
+            textEl.innerText = count;
+
+            let interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    textEl.innerText = count;
+                } else if (count === 0) {
+                    textEl.innerText = "BAŞLA!";
+                    textEl.style.color = "#f1c40f";
+                } else {
+                    clearInterval(interval);
+                    overlay.style.display = 'none';
+                    textEl.style.color = "white"; 
+                    isGameActive = true;
+                    askQuestion('L');
+                    askQuestion('R');
+                }
+            }, 1000);
+        }
+
+        function R(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function askQuestion(side) {
+            let n1, n2, ans, text;
+            
+            if (cfg.op === 'toplama') {
+                if (cfg.diff === 'kolay') { n1=R(1,9); n2=R(1,9); }
+                else if (cfg.diff === 'orta') { n1=R(10,99); n2=R(1,9); if(Math.random()>0.5){let t=n1; n1=n2; n2=t;} }
+                else { n1=R(10,99); n2=R(10,99); }
+                ans = n1 + n2; text = `${n1} + ${n2}`;
+            } 
+            else if (cfg.op === 'cikarma') {
+                if (cfg.diff === 'kolay') { n1=R(1,9); n2=R(1,n1); } 
+                else if (cfg.diff === 'orta') { n1=R(10,99); n2=R(1,9); }
+                else { n1=R(10,99); n2=R(10,n1); }
+                ans = n1 - n2; text = `${n1} - ${n2}`;
+            } 
+            else if (cfg.op === 'carpma') {
+                if (cfg.diff === 'kolay') { n1=R(1,9); n2=R(1,9); }
+                else if (cfg.diff === 'orta') { n1=R(10,99); n2=R(1,9); }
+                else { n1=R(10,99); n2=R(10,99); }
+                ans = n1 * n2; text = `${n1} x ${n2}`;
+            } 
+            else if (cfg.op === 'bolme') {
+                let bolen, sonuc;
+                if (cfg.diff === 'kolay') { bolen=R(1,9); sonuc=R(1,9); }
+                else if (cfg.diff === 'orta') { bolen=R(2,9); sonuc=R(10,99); }
+                else { bolen=R(10,40); sonuc=R(10,40); }
+                n1 = bolen * sonuc; n2 = bolen; ans = sonuc;
+                text = `${n1} ÷ ${n2}`;
+            }
+
+            targetVals[side] = ans;
+            document.getElementById(side === 'L' ? 'q-left' : 'q-right').innerText = text + " = ?";
+            
+            inputs[side] = "";
+            document.getElementById(side === 'L' ? 'ans-left' : 'ans-right').innerText = "";
+        }
+
+        function pressKey(e, side, val) {
+            if(e) { e.preventDefault(); animateBtn(e.currentTarget); }
+            if (!isGameActive) return;
+            if (inputs[side].length < 4) { 
+                inputs[side] += val;
+                document.getElementById(side === 'L' ? 'ans-left' : 'ans-right').innerText = inputs[side];
+            }
+        }
+
+        function clearAns(e, side) {
+            if(e) { e.preventDefault(); animateBtn(e.currentTarget); }
+            inputs[side] = "";
+            document.getElementById(side === 'L' ? 'ans-left' : 'ans-right').innerText = "";
+        }
+
+        function submitAns(e, side) {
+            if(e) { e.preventDefault(); animateBtn(e.currentTarget); }
+            if (!isGameActive || inputs[side] === "") return;
+            let val = parseInt(inputs[side]);
+            
+            if (val === targetVals[side]) {
+                if (cfg.game === 'halat') {
+                    if (side === 'L') halatScore--; else halatScore++;
+                } else {
+                    scores[side]++;
+                }
+                updateVisuals();
+                checkWin();
+                if(isGameActive) askQuestion(side); 
+            } else {
+                let box = document.getElementById(side === 'L' ? 'ans-left' : 'ans-right');
+                box.classList.add('shake');
+                setTimeout(() => { box.classList.remove('shake'); clearAns(null, side); }, 400);
+
+                if (cfg.game === 'direk') {
+                    scores[side] = Math.max(0, scores[side] - 1);
+                    updateVisuals();
+                }
+            }
+        }
+
+        function animateBtn(btn) {
+            btn.classList.add('pressed');
+            setTimeout(() => btn.classList.remove('pressed'), 100);
+        }
+
+        function updateVisuals() {
+            if (cfg.game === 'halat') {
+                let percent = 50 + (halatScore * 10); 
+                document.getElementById('halat-marker').style.left = percent + "%";
+            } else {
+                let wL = (scores.L / maxScore) * 100;
+                let wR = (scores.R / maxScore) * 100;
+                document.getElementById('fill-L').style.width = wL + "%";
+                document.getElementById('fill-R').style.width = wR + "%";
+                document.getElementById('score-text-L').innerText = scores.L;
+                document.getElementById('score-text-R').innerText = scores.R;
+            }
+        }
+
+        function checkWin() {
+            if (cfg.game === 'halat') {
+                if (halatScore <= -5) showWinner(names.L);
+                else if (halatScore >= 5) showWinner(names.R);
+            } else {
+                if (scores.L >= maxScore) showWinner(names.L);
+                else if (scores.R >= maxScore) showWinner(names.R);
+            }
+        }
+
+        function showWinner(name) {
+            isGameActive = false;
+            document.getElementById('winner-text').innerText = "🏆 " + name + " KAZANDI! 🏆";
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function resetGame() {
+            document.getElementById('modal').style.display = 'none';
+            prepareGame();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Tam ekran yapılamadı: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
