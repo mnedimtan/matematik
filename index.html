@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fungineer Matematik Platformu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red:#FF4757; --red-dark:#c0392b;
+            --blue:#1E90FF; --blue-dark:#1a6fc4;
+            --yellow:#FFD700; --yellow-dark:#e6b800;
+            --green:#2ED573; --green-dark:#27ae60;
+            --purple:#A855F7; --purple-dark:#7c3aed;
+            --orange:#FF6B35; --orange-dark:#d35400;
+            --bg-start:#1a1a2e; --bg-mid:#16213e; --bg-end:#0f3460;
+            --card:rgba(255,255,255,0.07); --card-border:rgba(255,255,255,0.15);
+            --text:#fff; --text-dim:rgba(255,255,255,0.65);
+            --font-display:'Fredoka One',cursive; --font-body:'Nunito',sans-serif;
+        }
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+        body{font-family:var(--font-body);background:linear-gradient(135deg,var(--bg-start) 0%,var(--bg-mid) 50%,var(--bg-end) 100%);min-height:100vh;height:100dvh;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;overflow:hidden;color:var(--text);position:relative;}
+        body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 30% 70%,rgba(255,255,255,0.4) 0%,transparent 100%),radial-gradient(2px 2px at 50% 10%,rgba(255,215,0,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 70% 50%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 85% 30%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(2px 2px at 20% 80%,rgba(100,200,255,0.4) 0%,transparent 100%),radial-gradient(1px 1px at 60% 90%,rgba(255,255,255,0.5) 0%,transparent 100%),radial-gradient(1px 1px at 90% 80%,rgba(255,215,0,0.4) 0%,transparent 100%);pointer-events:none;z-index:0;animation:twinkle 4s ease-in-out infinite alternate;}
+        @keyframes twinkle{from{opacity:0.6}to{opacity:1}}
+        body::after{content:'';position:fixed;top:-20%;left:-10%;width:60vmin;height:60vmin;background:radial-gradient(circle,rgba(30,144,255,0.12) 0%,transparent 70%);border-radius:50%;animation:driftOrb 12s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
+        @keyframes driftOrb{from{transform:translate(0,0) scale(1)}to{transform:translate(15vw,10vh) scale(1.3)}}
+
+        /* ── PORTRAIT ── */
+        #portrait-warning{display:none;position:fixed;inset:0;background:var(--bg-start);color:#fff;z-index:9999;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-display);font-size:clamp(20px,5vw,36px);text-align:center;padding:20px;gap:20px;}
+        #portrait-warning .ri{font-size:clamp(60px,15vw,100px);animation:rp 2s infinite ease-in-out;}
+        @keyframes rp{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-90deg)}}
+        @media screen and (orientation:portrait){#portrait-warning{display:flex;}}
+
+        /* ── SCREENS ── */
+        .screen{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:3vmin 2vmin;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity 0.35s ease,transform 0.35s ease;transform:translateY(20px);}
+        .screen.active{opacity:1;pointer-events:all;transform:translateY(0);}
+
+        /* ── LOGO ── */
+        .logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:3vmin;flex-shrink:0;}
+        .logo-icon{font-size:8vmin;margin-bottom:0.5vmin;animation:bobL 2s ease-in-out infinite;}
+        @keyframes bobL{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+        .logo-title{font-family:var(--font-display);font-size:clamp(28px,7vmin,56px);background:linear-gradient(135deg,var(--yellow),var(--orange),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 3px 6px rgba(255,107,53,0.5));letter-spacing:1px;}
+        .logo-sub{font-size:2.5vmin;color:var(--text-dim);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:0.5vmin;}
+
+        /* ── GLASS CARD ── */
+        .glass-card{background:var(--card);border:1px solid var(--card-border);border-radius:2.5vmin;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+
+        /* ── NAME INPUTS ── */
+        .name-section{width:100%;max-width:70vmin;display:flex;flex-direction:column;gap:2vmin;margin-bottom:3vmin;flex-shrink:0;}
+        .name-row{display:flex;align-items:center;gap:2vmin;padding:1.5vmin 2.5vmin;border-radius:2vmin;}
+        .name-emoji{font-size:4vmin;flex-shrink:0;}
+        .name-input-group{flex:1;display:flex;flex-direction:column;gap:0.5vmin;}
+        .name-label{font-size:2.2vmin;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;opacity:0.85;}
+        .name-input-group input{padding:1.2vmin 1.5vmin;font-family:var(--font-body);font-size:3.5vmin;font-weight:800;border:2px solid rgba(255,255,255,0.2);border-radius:1.2vmin;background:rgba(0,0,0,0.3);color:#fff;text-align:center;width:100%;transition:border-color 0.2s,box-shadow 0.2s;}
+        .name-input-group input::placeholder{opacity:0.4;}
+        .name-input-group input:focus{outline:none;border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,215,0,0.2);}
+        .row-red{background:linear-gradient(135deg,rgba(255,71,87,0.2),rgba(255,71,87,0.05));border:1px solid rgba(255,71,87,0.3);}
+        .row-blue{background:linear-gradient(135deg,rgba(30,144,255,0.2),rgba(30,144,255,0.05));border:1px solid rgba(30,144,255,0.3);}
+        .label-red{color:#ff6b7a;} .label-blue{color:#5cb8ff;}
+
+        /* ── MENU GRID ── */
+        .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:2vmin;width:100%;max-width:90vmin;flex-shrink:0;}
+        .menu-grid.single{grid-template-columns:1fr;max-width:65vmin;}
+        .game-btn{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;padding:2.5vmin 3vmin;border:none;border-radius:2vmin;color:#fff;cursor:pointer;text-align:left;transition:transform 0.15s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.15s;min-height:12vmin;}
+        .game-btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background 0.2s;}
+        .game-btn:active::before{background:rgba(255,255,255,0.15);}
+        .game-btn:active{transform:scale(0.96) translateY(2px);}
+        .game-btn:not(:active):hover{transform:scale(1.02) translateY(-2px);}
+        .game-btn .bs{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.2) 50%,transparent 60%);animation:sp 3s ease-in-out infinite;}
+        @keyframes sp{0%,70%{left:-100%}100%{left:200%}}
+        .game-btn .btn-icon{font-size:5vmin;margin-bottom:0.5vmin;}
+        .game-btn .btn-title{font-family:var(--font-display);font-size:3.5vmin;letter-spacing:0.5px;}
+        .game-btn .btn-desc{font-size:2vmin;opacity:0.85;font-weight:600;margin-top:0.3vmin;line-height:1.3;}
+        .gbtn-slate{background:linear-gradient(135deg,#485563,#29323c);box-shadow:0 0.8vmin 0 #1a2030,0 4px 20px rgba(0,0,0,0.4);}
+        .gbtn-red{background:linear-gradient(135deg,#ff6b7a,#e74c3c);box-shadow:0 0.8vmin 0 #a93226,0 4px 20px rgba(231,76,60,0.4);}
+        .gbtn-blue{background:linear-gradient(135deg,#4fc3f7,#1e90ff);box-shadow:0 0.8vmin 0 #1260a8,0 4px 20px rgba(30,144,255,0.4);}
+        .gbtn-orange{background:linear-gradient(135deg,#ffa040,#e67e22);box-shadow:0 0.8vmin 0 #a05200,0 4px 20px rgba(230,126,34,0.4);}
+        .gbtn-purple{background:linear-gradient(135deg,#c084fc,#9b59b6);box-shadow:0 0.8vmin 0 #6c3483,0 4px 20px rgba(155,89,182,0.4);}
+        .gbtn-green{background:linear-gradient(135deg,#69f0ae,#27ae60);box-shadow:0 0.8vmin 0 #1a7a40,0 4px 20px rgba(39,174,96,0.4);}
+        .span2{grid-column:span 2;}
+
+        /* ── ACTION BTNS ── */
+        .action-btn{padding:2vmin 5vmin;font-family:var(--font-display);font-size:3.5vmin;letter-spacing:1px;border:none;border-radius:5vmin;cursor:pointer;color:#fff;transition:transform 0.15s cubic-bezier(0.34,1.56,0.64,1);flex-shrink:0;margin-top:2vmin;}
+        .action-btn:active{transform:scale(0.95);}
+        .action-btn.primary{background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a1a2e;box-shadow:0 0.8vmin 0 #b8860b,0 4px 20px rgba(255,215,0,0.4);}
+        .action-btn.secondary{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);box-shadow:none;font-size:2.8vmin;}
+        .action-btn.fullscreen{background:linear-gradient(135deg,#2196F3,#1565C0);box-shadow:0 0.8vmin 0 #0d47a1;}
+
+        /* ── BOTTOM BAR ── */
+        #bottom-controls{position:fixed;bottom:0;left:0;right:0;height:10dvh;min-height:48px;background:rgba(10,10,25,0.85);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);display:none;align-items:center;justify-content:center;gap:3vw;z-index:50;}
+        #bottom-controls.visible{display:flex;}
+        .bottom-btn{font-family:var(--font-body);font-size:2.5vmin;font-weight:800;color:#fff;cursor:pointer;border:none;border-radius:5vmin;padding:1.5vmin 4vmin;transition:transform 0.1s;}
+        .bottom-btn:active{transform:scale(0.95);}
+        .bottom-btn.home{background:linear-gradient(135deg,rgba(255,107,53,0.85),rgba(231,76,60,0.85));box-shadow:0 3px 12px rgba(0,0,0,0.3);}
+        .bottom-btn.back{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);}
+
+        /* ── FOOTER ── */
+        .footer-credit{margin-top:auto;padding:1.5vmin 3vmin;border-radius:2vmin;flex-shrink:0;font-size:2.2vmin;color:var(--text-dim);font-weight:700;text-align:center;line-height:1.7;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);}
+        .footer-credit a{color:var(--yellow);text-decoration:none;}
+
+        /* ── ARENA ── */
+        .arena-container{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.3s ease;}
+        .arena-container.active{opacity:1;pointer-events:all;}
+        #game-arena,#antrenman-arena,#ninja-arena{height:calc(100dvh - 10dvh);} /* Alt bar boşluğu bırak */
+
+        /* ── SCOREBOARD ── */
+        .scoreboard{flex:0 0 16%;background:rgba(10,10,30,0.7);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;justify-content:center;padding:0.8vmin 2vw;}
+        .status-title{text-align:center;font-family:var(--font-display);font-size:2.8vmin;color:var(--yellow);margin-bottom:0.8vmin;text-shadow:0 0 20px rgba(255,215,0,0.5);}
+        .indicator-row{display:flex;align-items:center;margin:0.4vmin 0;height:40%;}
+        .player-label{width:14vw;font-weight:900;font-size:3vmin;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .progress-bar{flex:1;height:100%;background:rgba(255,255,255,0.1);border-radius:3vmin;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,0.15);box-shadow:inset 0 2px 4px rgba(0,0,0,0.3);}
+        .progress-fill{height:100%;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);background-size:4vmin 4vmin;animation:ms 0.8s linear infinite;background-image:linear-gradient(45deg,rgba(255,255,255,0.2) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.2) 50%,rgba(255,255,255,0.2) 75%,transparent 75%);}
+        .fill-left{background-color:var(--red);} .fill-right{background-color:var(--blue);}
+        @keyframes ms{100%{background-position:4vmin 0}}
+        .halat-center{position:absolute;width:2px;height:100%;background:rgba(255,255,255,0.4);left:50%;transform:translateX(-50%);z-index:1;}
+        .halat-marker{position:absolute;width:4.5vmin;height:4.5vmin;background:radial-gradient(circle at 35% 35%,var(--yellow),var(--orange));border:2px solid #fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);transition:left 0.4s ease;z-index:2;box-shadow:0 0 12px rgba(255,215,0,0.8),0 0 20px rgba(255,107,53,0.5);}
+        .score-text{width:8vw;text-align:center;font-weight:900;font-size:3.5vmin;background:rgba(255,255,255,0.1);border-radius:1vmin;margin-left:1vw;border:1px solid rgba(255,255,255,0.2);font-family:var(--font-display);}
+
+        /* ── PLAY AREA (Flex Layout ile Otomatik Sığdırma) ── */
+        .play-area{flex:1;display:flex;width:100%;overflow:hidden;min-height:0;} /* min-height:0 ekran dışına taşmayı önler */
+        .player-panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2vmin;position:relative;height:100%;min-height:0;}
+        .left-panel{background:linear-gradient(170deg,rgba(255,71,87,0.05) 0%,transparent 60%);border-right:1px solid rgba(255,71,87,0.2);}
+        .right-panel{background:linear-gradient(170deg,rgba(30,144,255,0.05) 0%,transparent 60%);border-left:1px solid rgba(30,144,255,0.2);}
+        
+        .panel-name{position:absolute;top:50%;font-family:var(--font-display);font-size:7vmin;color:#fff;letter-spacing:0.5vmin;opacity:0.06;z-index:0;pointer-events:none;}
+        #panel-name-L{right:1.5vw;transform:translateY(-50%) rotate(-90deg);}
+        #panel-name-R{left:1.5vw;transform:translateY(-50%) rotate(90deg);}
+        
+        .question-box{flex:0 0 15%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:clamp(24px, 7vmin, 60px);color:#fff;width:100%;text-shadow:0 2px 12px rgba(0,0,0,0.5);margin-bottom:1vmin;}
+        .answer-box{flex:0 0 12%;max-height:80px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:clamp(20px, 6vmin, 50px);width:70%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.3);border-radius:2vmin;font-weight:bold;color:var(--yellow);margin-bottom:3vmin;box-shadow:inset 0 2px 8px rgba(0,0,0,0.2),0 0 20px rgba(255,215,0,0.1);text-shadow:0 0 20px rgba(255,215,0,0.6);}
+
+        /* ── KEYPAD (Köşeleri Yuvarlatılmış Dörtgenler ve Tam Sığdırma) ── */
+        .keypad-wrapper { flex:1; width:100%; display:flex; align-items:flex-start; justify-content:center; min-height:0; overflow:hidden; }
+        .keypad {
+            display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);
+            gap:2vmin;width:100%;height:100%;max-width:60vmin;margin:0 auto;
+        }
+        
+        .key-btn{
+            width:100%;height:100%;border:none;
+            border-radius:2vmin; /* YUVARLATILMIŞ DÖRTGEN KÖŞELERİ */
+            font-family:var(--font-display);cursor:pointer;
+            transition:transform 0.1s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.1s;
+            touch-action:none;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+        }
+        .key-btn::after{
+            content:'';position:absolute;inset:0;
+            border-radius:inherit; /* Kapsayıcının köşe yumuşaklığını alır */
+            background:rgba(255,255,255,0);transition:background 0.1s;
+        }
+        .key-btn:active::after,.key-btn.pressed::after{background:rgba(255,255,255,0.2);}
+        .key-btn:active,.key-btn.pressed{transform:scale(0.92);}
+        
+        .key-btn.num{font-size:clamp(20px, 4.5vmin, 40px);color:#1a1a2e;background:radial-gradient(circle at 35% 30%,#fff,#d0d8e8);box-shadow:0 0.5vmin 0 #8090a0,0 3px 8px rgba(0,0,0,0.3),inset 0 1px 2px rgba(255,255,255,0.8);}
+        .key-btn.ctrl{font-size:clamp(16px, 3vmin, 30px);color:#fff;background:radial-gradient(circle at 35% 30%,#5dade2,#1e90ff);box-shadow:0 0.5vmin 0 #1260a8,0 3px 8px rgba(30,144,255,0.4),inset 0 1px 2px rgba(255,255,255,0.4);}
+        .key-btn.git{font-size:clamp(18px, 3.5vmin, 35px);color:#fff;background:radial-gradient(circle at 35% 30%,#ff9f43,#e67e22);box-shadow:0 0.5vmin 0 #a05200,0 3px 8px rgba(230,126,34,0.4),inset 0 1px 2px rgba(255,255,255,0.3);}
+        
+        .shake{animation:shk 0.4s;border-color:var(--red)!important;box-shadow:0 0 20px rgba(255,71,87,0.6)!important;color:var(--red)!important;}
+        @keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px) rotate(-1deg)}40%{transform:translateX(8px) rotate(1deg)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+        /* ── COUNTDOWN & MODAL ── */
+        #countdown-overlay{display:none;position:absolute;inset:0;background:rgba(10,10,25,0.92);backdrop-filter:blur(8px);z-index:50;flex-direction:column;align-items:center;justify-content:center;}
+        #countdown-text{font-family:var(--font-display);font-size:35vmin;background:linear-gradient(135deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:cp 0.9s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(255,215,0,0.6));}
+        @keyframes cp{0%,100%{transform:scale(0.85)}50%{transform:scale(1.1)}}
+        .modal{display:none;position:fixed;inset:0;background:rgba(5,5,20,0.92);backdrop-filter:blur(12px);z-index:100;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:4vmin;}
+        .modal-trophy{font-size:15vmin;animation:ts 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+        @keyframes ts{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0deg)}}
+        .modal h1{font-family:var(--font-display);font-size:9vmin;margin:2vmin 0 1vmin;background:linear-gradient(135deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .modal p{font-size:4vmin;margin-bottom:4vmin;opacity:0.85;font-weight:700;}
+        .modal-buttons{display:flex;gap:2vmin;flex-wrap:wrap;justify-content:center;}
+        .modal-btn{padding:2.5vmin 5vmin;font-family:var(--font-display);font-size:4vmin;border:none;border-radius:5vmin;color:#fff;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.56,0.64,1);}
+        .modal-btn:active{transform:scale(0.95);}
+        .modal-btn.green-btn{background:linear-gradient(135deg,#69f0ae,var(--green));box-shadow:0 0.8vmin 0 #1a7a40,0 4px 16px rgba(39,174,96,0.5);}
+        .modal-btn.orange-btn{background:linear-gradient(135deg,#ffa040,var(--orange));box-shadow:0 0.8vmin 0 #a05200,0 4px 16px rgba(230,126,34,0.5);}
+
+        /* ── ANTRENMAN KAMPI ── */
+        #grid-wrapper{display:flex;flex-direction:column;align-items:center;width:100%;height:100%;padding:1.5vmin;gap:0.8vmin;}
+        #antrenman-eq{font-family:var(--font-display);font-size:4.5vmin;color:var(--yellow);text-shadow:0 0 20px rgba(255,215,0,0.5);background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);padding:0.8vmin 4vmin;border-radius:3vmin;flex-shrink:0;}
+        .top-controls{display:flex;flex-wrap:wrap;justify-content:center;gap:0.7vmin;width:100%;flex-shrink:0;}
+        .ctrl-btn{padding:0.7vmin 1.5vmin;font-family:var(--font-body);font-size:2.1vmin;font-weight:800;border-radius:1vmin;border:1px solid rgba(255,255,255,0.2);cursor:pointer;background:rgba(255,255,255,0.08);color:#fff;transition:all 0.15s;}
+        .ctrl-btn:active,.ctrl-btn.active-tab{background:rgba(255,215,0,0.25);border-color:var(--yellow);color:var(--yellow);transform:scale(0.95);}
+        .math-grid{display:grid;grid-template-columns:repeat(11,1fr);gap:0.4vmin;width:100%;flex:1;min-height:0;background:rgba(255,255,255,0.05);padding:0.5vmin;border-radius:2vmin;border:1px solid rgba(255,255,255,0.1);box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+        .grid-cell{background:rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-weight:800;font-size:2.5vmin;cursor:pointer;border-radius:0.5vmin;transition:background 0.2s,transform 0.15s,opacity 0.2s;color:#fff;}
+        .grid-cell.header{background:linear-gradient(135deg,#1e90ff,#0d5ecc);color:#fff;font-size:3vmin;pointer-events:none;}
+        .grid-cell:not(.header):active{transform:scale(0.85);}
+        .grid-cell.highlight-path{background:rgba(78,205,196,0.35);color:#4ecdc4;}
+        .grid-cell.highlight-target{background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a1a2e;font-size:3.5vmin;z-index:2;transform:scale(1.1);box-shadow:0 0 20px rgba(255,215,0,0.7);}
+        .grid-cell.highlight-multiple{background:linear-gradient(135deg,rgba(46,213,115,0.5),rgba(39,174,96,0.3));color:#2ed573;}
+        .grid-cell.dimmed{opacity:0.08;pointer-events:none;}
+
+        #proof-area{flex-shrink:0;width:100%;display:none;flex-direction:row;align-items:center;justify-content:center;gap:2vmin;background:rgba(0,0,0,0.3);border:1px solid rgba(255,215,0,0.25);border-radius:2vmin;padding:1.2vmin 2vmin;}
+        #proof-area.visible{display:flex;}
+        .proof-grid-wrap{display:flex;flex-direction:column;align-items:center;gap:0.5vmin;}
+        .proof-label{font-size:2vmin;color:var(--text-dim);font-weight:700;}
+        .dot-grid{display:grid;gap:0.4vmin;}
+        .dot{width:2.1vmin;height:2.1vmin;border-radius:50%;transition:background 0.25s,transform 0.2s;}
+        .dot.row-dot{background:rgba(255,107,53,0.9);box-shadow:0 0 4px rgba(255,107,53,0.6);}
+        .dot.col-dot{background:rgba(30,144,255,0.9);box-shadow:0 0 4px rgba(30,144,255,0.6);}
+        .dot.both-dot{background:var(--yellow);box-shadow:0 0 6px rgba(255,215,0,0.8);transform:scale(1.1);}
+        .proof-sep{font-family:var(--font-display);font-size:4.5vmin;color:#fff;opacity:0.5;}
+        .proof-result{font-family:var(--font-display);font-size:7vmin;color:var(--yellow);text-shadow:0 0 20px rgba(255,215,0,0.6);}
+        .proof-breakdown{display:flex;flex-direction:column;gap:0.4vmin;align-items:flex-start;}
+        .proof-breakdown .rs{font-size:2vmin;font-weight:800;color:rgba(255,255,255,0.65);}
+        .proof-breakdown .rs span{color:var(--yellow);}
+        @keyframes dotPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.35);opacity:1}100%{transform:scale(1);opacity:1}}
+
+        /* ── NINJA ── */
+        #ninja-area{position:relative;width:100%;height:100%;overflow:hidden;background:linear-gradient(180deg,#0a0a2e 0%,#1a1a4e 40%,#2d1b69 100%);}
+        #ninja-area::before{content:'';position:absolute;inset:0;background-image:radial-gradient(1px 1px at 15% 25%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 40% 15%,#fff 0%,transparent 100%),radial-gradient(2px 2px at 65% 35%,rgba(255,215,0,0.8) 0%,transparent 100%),radial-gradient(1px 1px at 80% 20%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 25% 60%,rgba(200,200,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 55% 55%,#fff 0%,transparent 100%),radial-gradient(2px 2px at 90% 45%,rgba(255,215,0,0.6) 0%,transparent 100%);animation:twinkle 2s ease-in-out infinite alternate;pointer-events:none;}
+        .ninja-header{position:absolute;top:3vmin;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05));backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);padding:1.5vmin 4vmin;border-radius:3vmin;font-family:var(--font-display);font-size:6vmin;color:#fff;box-shadow:0 4px 30px rgba(0,0,0,0.4);z-index:10;white-space:nowrap;text-shadow:0 0 20px rgba(255,215,0,0.5);}
+        .ninja-score-badge{position:absolute;top:3vmin;right:3vmin;background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a1a2e;font-family:var(--font-display);font-size:4vmin;padding:1vmin 2.5vmin;border-radius:5vmin;z-index:10;box-shadow:0 4px 16px rgba(255,107,53,0.5);}
+        #ninja-balloons-container{position:absolute;inset:0;pointer-events:none;}
+
+        .balloon{position:absolute;pointer-events:auto;bottom:-28vh;height:22vh;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:5.5vmin;color:#fff;cursor:pointer;box-shadow:inset -3vmin -3vmin 4vmin rgba(0,0,0,0.25),inset 2vmin 2vmin 3vmin rgba(255,255,255,0.25),0 4px 20px rgba(0,0,0,0.4);touch-action:none;}
+        .balloon::before{content:'';position:absolute;top:18%;left:22%;width:25%;height:20%;border-radius:50%;background:rgba(255,255,255,0.4);transform:rotate(-30deg);}
+        .balloon::after{content:'';position:absolute;bottom:-4vmin;left:50%;width:0.5vmin;height:5vmin;background:rgba(255,255,255,0.4);}
+        .b-red{background:radial-gradient(circle at 30% 30%,#ff6b7a,#c0392b);}
+        .b-blue{background:radial-gradient(circle at 30% 30%,#4fc3f7,#1e90ff);}
+        .b-green{background:radial-gradient(circle at 30% 30%,#69f0ae,#27ae60);}
+        .b-purple{background:radial-gradient(circle at 30% 30%,#c084fc,#8e44ad);}
+        .b-yellow{background:radial-gradient(circle at 30% 30%,#FFD700,#e6b800);color:#1a1a2e;}
+
+        @keyframes floatUp{0%{bottom:-28vh}100%{bottom:120vh}}
+        @keyframes popCorrect{0%{transform:scale(1);opacity:1;}25%{transform:scale(1.45);filter:brightness(2.5);}55%{transform:scale(0.15);opacity:0.7;}100%{transform:scale(0);opacity:0;}}
+        .pop-anim-correct{animation:popCorrect 0.38s cubic-bezier(0.36,0.07,0.19,0.97) forwards;pointer-events:none;}
+
+        @keyframes deflateWrong{0%{transform:scale(1) translateX(0) translateY(0) rotate(0deg);opacity:1;border-radius:50%;}12%{transform:scale(1.06,0.88) translateX(0) translateY(0) rotate(-6deg);border-radius:50%;}28%{transform:scale(0.68,1.08) translateX(var(--dx1)) translateY(var(--dy1)) rotate(var(--dr1));border-radius:62% 38% 58% 42%;opacity:0.92;}50%{transform:scale(0.42,0.58) translateX(var(--dx2)) translateY(var(--dy2)) rotate(var(--dr2));border-radius:70% 30% 62% 48%;opacity:0.72;}75%{transform:scale(0.22,0.32) translateX(var(--dx3)) translateY(var(--dy3)) rotate(var(--dr3));border-radius:65% 35%;opacity:0.45;}100%{transform:scale(0.04,0.07) translateX(var(--dx4)) translateY(var(--dy4)) rotate(var(--dr4));opacity:0;}}
+        .pop-anim-wrong{animation:deflateWrong 1s ease-in forwards;pointer-events:none;}
+
+        .confetti-particle{position:fixed;z-index:9999;pointer-events:none;animation:cfly 0.7s cubic-bezier(0.25,1,0.5,1) forwards;}
+        @keyframes cfly{0%{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1;}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0) rotate(var(--rot));opacity:0;}}
+    </style>
+</head>
+<body>
+    <div id="portrait-warning">
+        <div class="ri">🔄</div>
+        Lütfen Cihazınızı Yatay Çevirin
+    </div>
+
+    <div id="menu-1" class="screen active">
+        <div class="logo-wrap">
+            <div class="logo-icon">🧮</div>
+            <div class="logo-title">FUNGiNEER</div>
+            <div class="logo-sub">Matematik Platformu</div>
+        </div>
+        <div class="name-section">
+            <div class="name-row row-red glass-card">
+                <div class="name-emoji">🔴</div>
+                <div class="name-input-group">
+                    <div class="name-label label-red">Kırmızı Oyuncu</div>
+                    <input type="text" id="input-name-L" placeholder="Örn: Betül" maxlength="12">
+                </div>
+            </div>
+            <div class="name-row row-blue glass-card">
+                <div class="name-emoji">🔵</div>
+                <div class="name-input-group">
+                    <div class="name-label label-blue">Mavi Oyuncu</div>
+                    <input type="text" id="input-name-R" placeholder="Örn: Batu" maxlength="12">
+                </div>
+            </div>
+        </div>
+        <button class="action-btn primary" onclick="saveNames(event)" ontouchend="saveNames(event)">Devam Et 🚀</button>
+        <div class="footer-credit" style="margin-top:3vmin;">
+            Oyun Tasarımı: <strong>FungineerTR</strong><br>
+            YouTube: <a href="https://www.youtube.com/@FungineerTR" target="_blank">@FungineerTR</a>
+        </div>
+    </div>
+
+    <div id="menu-main" class="screen">
+        <div class="logo-wrap" style="margin-bottom:2vmin;">
+            <div class="logo-title" style="font-size:5vmin;">Kategoriyi Seçin</div>
+        </div>
+        <div class="menu-grid single">
+            <button class="game-btn gbtn-blue" onclick="goMenu('menu-main','menu-races')">
+                <div class="bs"></div><div class="btn-icon">🏆</div>
+                <div class="btn-title">Matematik Yarışları</div>
+                <div class="btn-desc">İki kişilik heyecanlı yarışmalar!</div>
+            </button>
+            <button class="game-btn gbtn-green" onclick="goMenu('menu-main','menu-carpim')">
+                <div class="bs"></div><div class="btn-icon">✖️</div>
+                <div class="btn-title">Çarpım Tablosu Öğrenme</div>
+                <div class="btn-desc">Eğlenceli tek kişilik görevler!</div>
+            </button>
+        </div>
+        <button class="action-btn fullscreen" onclick="toggleFullscreen()">📺 Tam Ekran</button>
+        <button class="action-btn secondary" onclick="goMenu('menu-main','menu-1')">← Geri</button>
+        <div class="footer-credit" style="margin-top:2vmin;">
+            Oyun Tasarımı: <strong>FungineerTR</strong><br>
+            YouTube: <a href="https://www.youtube.com/@FungineerTR" target="_blank">@FungineerTR</a>
+        </div>
+    </div>
+
+    <div id="menu-races" class="screen">
+        <div class="logo-wrap" style="margin-bottom:2vmin;">
+            <div class="logo-title" style="font-size:5vmin;">Yarışmayı Seçin</div>
+        </div>
+        <div class="menu-grid">
+            <button class="game-btn gbtn-slate" onclick="setGame('halat')">
+                <div class="bs"></div><div class="btn-icon">🪢</div>
+                <div class="btn-title">Halat Çekme</div><div class="btn-desc">İpi kendi tarafına çek! (5 Fark)</div>
+            </button>
+            <button class="game-btn gbtn-orange" onclick="setGame('yaris')">
+                <div class="bs"></div><div class="btn-icon">🏃</div>
+                <div class="btn-title">Çuval Yarışı</div><div class="btn-desc">Bitişe ilk sen ulaş! (10 Puan)</div>
+            </button>
+            <button class="game-btn gbtn-purple span2" onclick="setGame('direk')">
+                <div class="bs"></div><div class="btn-icon">🏛️</div>
+                <div class="btn-title">Yağlı Direk</div><div class="btn-desc">Yanlış cevap kaydırır! (8 Puan)</div>
+            </button>
+        </div>
+        <button class="action-btn secondary" onclick="goMenu('menu-races','menu-main')">← Geri</button>
+    </div>
+
+    <div id="menu-carpim" class="screen">
+        <div class="logo-wrap" style="margin-bottom:2vmin;">
+            <div class="logo-title" style="font-size:5vmin;">✖️ Çarpım Tablosu</div>
+        </div>
+        <div class="menu-grid single">
+            <button class="game-btn gbtn-blue" onclick="startCarpim('antrenman')">
+                <div class="bs"></div><div class="btn-icon">🧠</div>
+                <div class="btn-title">1. Antrenman Kampı</div>
+                <div class="btn-desc">Sayıların sırrını renklerle keşfet!</div>
+            </button>
+            <button class="game-btn gbtn-orange" onclick="startCarpim('ninja')">
+                <div class="bs"></div><div class="btn-icon">🥷</div>
+                <div class="btn-title">2. Ninja Meydan Okuması</div>
+                <div class="btn-desc">Doğru cevaplı balonu havada yakala!</div>
+            </button>
+        </div>
+        <button class="action-btn secondary" onclick="goMenu('menu-carpim','menu-main')">← Geri</button>
+    </div>
+
+    <div id="menu-op" class="screen">
+        <div class="logo-wrap" style="margin-bottom:2vmin;">
+            <div class="logo-title" style="font-size:5vmin;">İşlemi Seçin</div>
+        </div>
+        <div class="menu-grid">
+            <button class="game-btn gbtn-red" onclick="setOp('toplama')">
+                <div class="bs"></div><div class="btn-icon">➕</div><div class="btn-title">Toplama</div>
+            </button>
+            <button class="game-btn gbtn-blue" onclick="setOp('cikarma')">
+                <div class="bs"></div><div class="btn-icon">➖</div><div class="btn-title">Çıkarma</div>
+            </button>
+            <button class="game-btn gbtn-orange" onclick="setOp('carpma')">
+                <div class="bs"></div><div class="btn-icon">✖️</div><div class="btn-title">Çarpma</div>
+            </button>
+            <button class="game-btn gbtn-purple" onclick="setOp('bolme')">
+                <div class="bs"></div><div class="btn-icon">➗</div><div class="btn-title">Bölme</div>
+            </button>
+        </div>
+        <button class="action-btn secondary" onclick="goMenu('menu-op','menu-races')">← Geri</button>
+    </div>
+
+    <div id="menu-diff" class="screen">
+        <div class="logo-wrap" style="margin-bottom:2vmin;">
+            <div class="logo-title" style="font-size:5vmin;">Zorluk Seviyesi</div>
+        </div>
+        <div class="menu-grid single">
+            <button class="game-btn gbtn-green" onclick="setDiff('kolay')">
+                <div class="bs"></div><div class="btn-icon">😊</div><div class="btn-title">Kolay</div><div class="btn-desc">1 Basamaklı Sayılar</div>
+            </button>
+            <button class="game-btn gbtn-orange" onclick="setDiff('orta')">
+                <div class="bs"></div><div class="btn-icon">😤</div><div class="btn-title">Orta</div><div class="btn-desc">1 ve 2 Basamaklı Sayılar</div>
+            </button>
+            <button class="game-btn gbtn-red" onclick="setDiff('zor')">
+                <div class="bs"></div><div class="btn-icon">🔥</div><div class="btn-title">Zor</div><div class="btn-desc">2 Basamaklı Sayılar</div>
+            </button>
+        </div>
+        <button class="action-btn secondary" onclick="goMenu('menu-diff','menu-op')">← Geri</button>
+    </div>
+
+    <div id="game-arena" class="arena-container">
+        <div id="countdown-overlay"><div id="countdown-text">3</div></div>
+        <div class="scoreboard">
+            <div id="game-status-text" class="status-title">Oyun Hazırlanıyor...</div>
+            <div id="bar-view-dual" style="display:none;">
+                <div class="indicator-row">
+                    <span id="score-name-L" class="player-label" style="color:#ff6b7a;">Betül</span>
+                    <div class="progress-bar"><div id="fill-L" class="progress-fill fill-left"></div></div>
+                    <span id="score-text-L" class="score-text">0</span>
+                </div>
+                <div class="indicator-row">
+                    <span id="score-name-R" class="player-label" style="color:#5cb8ff;">Batu</span>
+                    <div class="progress-bar"><div id="fill-R" class="progress-fill fill-right"></div></div>
+                    <span id="score-text-R" class="score-text">0</span>
+                </div>
+            </div>
+            <div id="bar-view-single" style="display:none;">
+                <div class="indicator-row">
+                    <span id="halat-name-L" class="player-label" style="color:#ff6b7a;">Betül</span>
+                    <div class="progress-bar" style="background:rgba(255,255,255,0.08);">
+                        <div class="halat-center"></div>
+                        <div id="halat-marker" class="halat-marker"></div>
+                    </div>
+                    <span id="halat-name-R" class="player-label" style="text-align:right;color:#5cb8ff;">Batu</span>
+                </div>
+            </div>
+        </div>
+        <div class="play-area">
+            <div class="player-panel left-panel">
+                <div id="panel-name-L" class="panel-name">Betül</div>
+                <div class="question-box" id="q-left">Bekleniyor...</div>
+                <div class="answer-box" id="ans-left"></div>
+                <div class="keypad-wrapper">
+                    <div class="keypad">
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','7')" onmousedown="pressKey(event,'L','7')">7</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','8')" onmousedown="pressKey(event,'L','8')">8</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','9')" onmousedown="pressKey(event,'L','9')">9</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','4')" onmousedown="pressKey(event,'L','4')">4</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','5')" onmousedown="pressKey(event,'L','5')">5</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','6')" onmousedown="pressKey(event,'L','6')">6</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','1')" onmousedown="pressKey(event,'L','1')">1</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','2')" onmousedown="pressKey(event,'L','2')">2</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','3')" onmousedown="pressKey(event,'L','3')">3</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'L','0')" onmousedown="pressKey(event,'L','0')">0</button>
+                        <button class="key-btn ctrl" ontouchstart="clearAns(event,'L')" onmousedown="clearAns(event,'L')">Sil</button>
+                        <button class="key-btn git" ontouchstart="submitAns(event,'L')" onmousedown="submitAns(event,'L')">Git</button>
+                    </div>
+                </div>
+            </div>
+            <div class="player-panel right-panel">
+                <div id="panel-name-R" class="panel-name">Batu</div>
+                <div class="question-box" id="q-right">Bekleniyor...</div>
+                <div class="answer-box" id="ans-right"></div>
+                <div class="keypad-wrapper">
+                    <div class="keypad">
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','7')" onmousedown="pressKey(event,'R','7')">7</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','8')" onmousedown="pressKey(event,'R','8')">8</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','9')" onmousedown="pressKey(event,'R','9')">9</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','4')" onmousedown="pressKey(event,'R','4')">4</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','5')" onmousedown="pressKey(event,'R','5')">5</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','6')" onmousedown="pressKey(event,'R','6')">6</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','1')" onmousedown="pressKey(event,'R','1')">1</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','2')" onmousedown="pressKey(event,'R','2')">2</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','3')" onmousedown="pressKey(event,'R','3')">3</button>
+                        <button class="key-btn num" ontouchstart="pressKey(event,'R','0')" onmousedown="pressKey(event,'R','0')">0</button>
+                        <button class="key-btn ctrl" ontouchstart="clearAns(event,'R')" onmousedown="clearAns(event,'R')">Sil</button>
+                        <button class="key-btn git" ontouchstart="submitAns(event,'R')" onmousedown="submitAns(event,'R')">Git</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="antrenman-arena" class="arena-container">
+        <div id="grid-wrapper">
+            <div id="antrenman-eq">Tabloyu Keşfet! 🧠</div>
+            <div class="top-controls" id="grid-controls"></div>
+            <div class="math-grid" id="math-grid"></div>
+            <div id="proof-area">
+                <div class="proof-grid-wrap">
+                    <div class="proof-label" id="proof-label">?</div>
+                    <div class="dot-grid" id="dot-grid"></div>
+                </div>
+                <div class="proof-sep">=</div>
+                <div class="proof-result" id="proof-result">?</div>
+                <div class="proof-breakdown" id="proof-breakdown"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ninja-arena" class="arena-container">
+        <div id="ninja-area">
+            <div class="ninja-header" id="ninja-q">Hazırlan... 🥷</div>
+            <div class="ninja-score-badge" id="ninja-score-badge">⭐ 0 / 10</div>
+            <div id="ninja-balloons-container"></div>
+        </div>
+    </div>
+
+    <div id="bottom-controls">
+        <button class="bottom-btn back" id="back-btn">← Geri</button>
+        <button class="bottom-btn home" onclick="location.reload()">🏠 Ana Menü</button>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-trophy">🏆</div>
+        <h1 id="winner-text">Kazanan!</h1>
+        <p id="winner-subtext">Tebrikler!</p>
+        <div class="modal-buttons">
+            <button id="rematch-btn" class="modal-btn green-btn" onclick="resetGame()">🔄 Rövanş!</button>
+            <button class="modal-btn orange-btn" onclick="location.reload()">🏠 Menüye Dön</button>
+        </div>
+    </div>
+
+<script>
+// ══════════════════
+// STATE
+// ══════════════════
+let cfg={game:'',op:'',diff:''};
+let names={L:'Betül',R:'Batu'};
+let scores={L:0,R:0};
+let halatScore=0;
+let targetVals={L:null,R:null};
+let inputs={L:'',R:''};
+let maxScore=0;
+let isGameActive=false;
+let activeCarpimMode='';
+let ninjaScore=0,ninjaTarget=0;
+let backCallback=null;
+
+// ══════════════════
+// SCREENS
+// ══════════════════
+function goMenu(fromId,toId){
+    if(fromId){const el=document.getElementById(fromId);if(el)el.classList.remove('active');}
+    if(toId){const el=document.getElementById(toId);if(el)el.classList.add('active');}
+}
+function showArena(id,backFn){
+    document.getElementById(id).classList.add('active');
+    document.getElementById('bottom-controls').classList.add('visible');
+    backCallback=backFn||null;
+    document.getElementById('back-btn').style.display=backFn?'inline-block':'none';
+}
+function hideAllArenas(){
+    ['game-arena','antrenman-arena','ninja-arena'].forEach(id=>document.getElementById(id).classList.remove('active'));
+    document.getElementById('bottom-controls').classList.remove('visible');
+}
+document.getElementById('back-btn').addEventListener('click',()=>{if(backCallback)backCallback();});
+
+// ══════════════════
+// NAMES
+// ══════════════════
+function saveNames(e){
+    if(e&&e.preventDefault)e.preventDefault();
+    const nL=document.getElementById('input-name-L').value.trim();
+    const nR=document.getElementById('input-name-R').value.trim();
+    if(nL)names.L=nL; if(nR)names.R=nR;
+    ['score-name-L','halat-name-L','panel-name-L'].forEach(id=>document.getElementById(id).innerText=names.L);
+    ['score-name-R','halat-name-R','panel-name-R'].forEach(id=>document.getElementById(id).innerText=names.R);
+    document.getElementById('input-name-L').blur();
+    document.getElementById('input-name-R').blur();
+    goMenu('menu-1','menu-main');
+}
+
+// ══════════════════
+// RACES
+// ══════════════════
+function setGame(g){cfg.game=g;goMenu('menu-races','menu-op');}
+function setOp(o){cfg.op=o;goMenu('menu-op','menu-diff');}
+function setDiff(d){cfg.diff=d;goMenu('menu-diff','');prepareGame();}
+
+function prepareGame(){
+    hideAllArenas();
+    showArena('game-arena',()=>{
+        isGameActive=false;
+        hideAllArenas();
+        goMenu(null,'menu-diff');
+    });
+    scores.L=0;scores.R=0;halatScore=0;isGameActive=false;
+    targetVals={L:null,R:null};inputs={L:'',R:''};
+    document.getElementById('ans-left').innerText='';
+    document.getElementById('ans-right').innerText='';
+
+    if(cfg.game==='halat'){
+        maxScore=5;
+        document.getElementById('game-status-text').innerText='🪢 Halat Çekme (İlk 5 Fark)';
+        document.getElementById('bar-view-single').style.display='block';
+        document.getElementById('bar-view-dual').style.display='none';
+    }else if(cfg.game==='yaris'){
+        maxScore=10;
+        document.getElementById('game-status-text').innerText='🏃 Çuval Yarışı (10 Puan)';
+        document.getElementById('bar-view-dual').style.display='block';
+        document.getElementById('bar-view-single').style.display='none';
+    }else if(cfg.game==='direk'){
+        maxScore=8;
+        document.getElementById('game-status-text').innerText='🏛️ Yağlı Direk (8 Puan | Yanlış -1)';
+        document.getElementById('bar-view-dual').style.display='block';
+        document.getElementById('bar-view-single').style.display='none';
+    }
+    updateVisuals();
+    startCountdown(()=>{isGameActive=true;askQuestion('L');askQuestion('R');});
+}
+
+// ══════════════════
+// CARPIM
+// ══════════════════
+function startCarpim(mode){
+    activeCarpimMode=mode;
+    goMenu('menu-carpim','');
+    hideAllArenas();
+    isGameActive=false;
+    if(mode==='antrenman'){
+        showArena('antrenman-arena',()=>{hideAllArenas();goMenu(null,'menu-carpim');});
+        initAntrenman();
+    }else if(mode==='ninja'){
+        showArena('ninja-arena',()=>{isGameActive=false;hideAllArenas();goMenu(null,'menu-carpim');});
+        initNinja();
+    }
+}
+
+// ══════════════════
+// 1. ANTRENMAN
+// ══════════════════
+function initAntrenman(){
+    const grid=document.getElementById('math-grid');
+    const controls=document.getElementById('grid-controls');
+    grid.innerHTML='';controls.innerHTML='';
+    document.getElementById('antrenman-eq').innerText='Tabloyu Keşfet! 🧠';
+    document.getElementById('proof-area').classList.remove('visible');
+
+    for(let i=1;i<=10;i++){
+        let btn=document.createElement('button');
+        btn.className='ctrl-btn';btn.innerText=i+"'ler";btn.id='tab-btn-'+i;
+        btn.ontouchstart=(e)=>{e.preventDefault();highlightMultiples(i,btn);};
+        btn.onmousedown =(e)=>{e.preventDefault();highlightMultiples(i,btn);};
+        controls.appendChild(btn);
+    }
+    for(let r=0;r<=10;r++){
+        for(let c=0;c<=10;c++){
+            let cell=document.createElement('div');cell.className='grid-cell';
+            if(r===0&&c===0){cell.innerHTML='✖️';cell.classList.add('header');}
+            else if(r===0){cell.innerHTML=c;cell.classList.add('header');}
+            else if(c===0){cell.innerHTML=r;cell.classList.add('header');}
+            else{
+                cell.innerHTML=r*c;
+                cell.dataset.r=r;cell.dataset.c=c;cell.dataset.val=r*c;
+                cell.id=`cell-${r}-${c}`;
+                cell.ontouchstart=(e)=>{e.preventDefault();selectGridCell(r,c);};
+                cell.onmousedown =(e)=>{e.preventDefault();selectGridCell(r,c);};
+            }
+            grid.appendChild(cell);
+        }
+    }
+}
+
+function clearGridHighlights(){
+    document.querySelectorAll('.grid-cell').forEach(el=>el.classList.remove('highlight-path','highlight-target','highlight-multiple','dimmed'));
+    document.querySelectorAll('.ctrl-btn').forEach(el=>el.classList.remove('active-tab'));
+}
+
+function highlightMultiples(num,btn){
+    clearGridHighlights();
+    if(btn)btn.classList.add('active-tab');
+    document.getElementById('antrenman-eq').innerText=`${num}'ler Tablosu ✨`;
+    document.getElementById('proof-area').classList.remove('visible');
+    document.querySelectorAll('.grid-cell').forEach(el=>{
+        if(el.dataset.r==num||el.dataset.c==num)el.classList.add('highlight-multiple');
+        else if(el.dataset.val)el.classList.add('dimmed');
+    });
+}
+
+function selectGridCell(r,c){
+    clearGridHighlights();
+    document.getElementById('antrenman-eq').innerText=`${r} × ${c} = ${r*c}`;
+    for(let i=1;i<=r;i++){const el=document.getElementById(`cell-${i}-${c}`);if(el)el.classList.add('highlight-path');}
+    for(let i=1;i<=c;i++){const el=document.getElementById(`cell-${r}-${i}`);if(el)el.classList.add('highlight-path');}
+    const t=document.getElementById(`cell-${r}-${c}`);
+    if(t){t.classList.remove('highlight-path');t.classList.add('highlight-target');}
+    buildProof(r,c);
+}
+
+function buildProof(r,c){
+    const area=document.getElementById('proof-area');
+    const dotGrid=document.getElementById('dot-grid');
+    document.getElementById('proof-label').innerText=`${r} × ${c}`;
+    document.getElementById('proof-result').innerText=r*c;
+
+    // Dot grid
+    dotGrid.style.gridTemplateColumns=`repeat(${c},2.1vmin)`;
+    dotGrid.style.gridTemplateRows=`repeat(${r},2.1vmin)`;
+    dotGrid.innerHTML='';
+    for(let ri=0;ri<r;ri++){
+        for(let ci=0;ci<c;ci++){
+            const d=document.createElement('div');
+            d.className='dot';
+            if(ri===0&&ci===0)d.classList.add('both-dot');
+            else if(ri===0)d.classList.add('col-dot');
+            else if(ci===0)d.classList.add('row-dot');
+            else d.classList.add('both-dot');
+            const delay=(ri*c+ci)*0.02;
+            d.style.animation=`dotPop 0.3s ${delay}s both`;
+            dotGrid.appendChild(d);
+        }
+    }
+
+    const pb=document.getElementById('proof-breakdown');
+    pb.innerHTML='';
+    const showCount=Math.min(r,6);
+    for(let ri=1;ri<=showCount;ri++){
+        const line=document.createElement('div');
+        line.className='rs';
+        line.innerHTML=`${ri}. satır: <span>${c}</span>`;
+        pb.appendChild(line);
+    }
+    if(r>6){
+        const more=document.createElement('div');
+        more.className='rs';
+        more.innerHTML=`Toplam: <span>${r*c}</span>`;
+        pb.appendChild(more);
+    }
+    area.classList.add('visible');
+}
+
+// ══════════════════
+// 2. NINJA
+// ══════════════════
+function createConfetti(x,y){
+    const colors=['#FFD700','#FF4757','#1E90FF','#2ED573','#A855F7','#fff','#FF6B35','#00F2FE'];
+    const shapes=['50%','30%','0%'];
+    for(let i=0;i<52;i++){
+        let p=document.createElement('div');
+        p.className='confetti-particle';
+        let sz=(Math.random()*13+5)+'px';
+        p.style.cssText=`left:${x}px;top:${y}px;width:${sz};height:${sz};background-color:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${shapes[Math.floor(Math.random()*shapes.length)]};`;
+        let ang=Math.random()*Math.PI*2, vel=Math.random()*230+80;
+        p.style.setProperty('--tx',Math.cos(ang)*vel+'px');
+        p.style.setProperty('--ty',Math.sin(ang)*vel+'px');
+        p.style.setProperty('--rot',(Math.random()*720-360)+'deg');
+        document.body.appendChild(p);
+        setTimeout(()=>p.parentNode&&p.parentNode.removeChild(p),750);
+    }
+}
+
+function initNinja(){
+    document.getElementById('ninja-balloons-container').innerHTML='';
+    ninjaScore=0;
+    document.getElementById('ninja-q').innerText='Hazırlan... 🥷';
+    document.getElementById('ninja-score-badge').innerText='⭐ 0 / 10';
+    startCountdown(()=>{isGameActive=true;nextNinjaQuestion();});
+}
+
+function nextNinjaQuestion(){
+    if(!isGameActive||activeCarpimMode!=='ninja')return;
+    if(ninjaScore>=10){showWinner('Tebrikler! Sen Bir Ninjasın 🥷');return;}
+
+    document.getElementById('ninja-balloons-container').innerHTML='';
+    let n1=R(2,9),n2=R(2,9);
+    ninjaTarget=n1*n2;
+    document.getElementById('ninja-q').innerText=`${n1} × ${n2} = ?`;
+
+    let options=[ninjaTarget],tries=0;
+    while(options.length<4&&tries<80){
+        tries++;
+        let fake=(n1+R(-3,3))*(n2+R(-2,2));
+        if(fake!==ninjaTarget&&fake>1&&!options.includes(fake))options.push(fake);
+    }
+    while(options.length<4)options.push(ninjaTarget+options.length*3);
+    options.sort(()=>Math.random()-0.5);
+
+    const bColors=['b-red','b-blue','b-green','b-purple','b-yellow'];
+    const usedColors=[...bColors].sort(()=>Math.random()-0.5);
+
+    options.forEach((opt,idx)=>{
+        let b=document.createElement('div');
+        b.className=`balloon ${usedColors[idx]}`;
+        b.innerText=opt;
+        b.style.left=(6+idx*23)+'%';
+        const dur=4.5+Math.random()*2.5;
+        b.style.animation=`floatUp ${dur}s linear forwards`;
+
+        const popLogic=(e)=>{
+            if(e)e.preventDefault();
+            if(!isGameActive||b.dataset.popped)return;
+            b.dataset.popped='true';
+            b.style.animationPlayState='paused'; 
+
+            if(opt===ninjaTarget){
+                const rect=b.getBoundingClientRect();
+                createConfetti(rect.left+rect.width/2,rect.top+rect.height/2);
+                b.classList.add('pop-anim-correct');
+                ninjaScore++;
+                document.getElementById('ninja-score-badge').innerText=`⭐ ${ninjaScore} / 10`;
+                setTimeout(nextNinjaQuestion,420);
+            }else{
+                b.style.setProperty('--dx1',R(-50,50)+'px');
+                b.style.setProperty('--dy1',R(-25,25)+'px');
+                b.style.setProperty('--dr1',R(-35,35)+'deg');
+                b.style.setProperty('--dx2',R(-100,100)+'px');
+                b.style.setProperty('--dy2',R(-20,60)+'px');
+                b.style.setProperty('--dr2',R(-100,100)+'deg');
+                b.style.setProperty('--dx3',R(-140,140)+'px');
+                b.style.setProperty('--dy3',R(20,120)+'px');
+                b.style.setProperty('--dr3',R(-200,200)+'deg');
+                b.style.setProperty('--dx4',R(-180,180)+'px');
+                b.style.setProperty('--dy4',R(80,220)+'px');
+                b.style.setProperty('--dr4',R(-300,300)+'deg');
+                b.classList.add('pop-anim-wrong');
+
+                const hdr=document.getElementById('ninja-q');
+                hdr.innerText='Yanlış Balon! 💥';
+                hdr.classList.add('shake');
+                setTimeout(()=>hdr.classList.remove('shake'),400);
+            }
+        };
+        b.ontouchstart=popLogic;
+        b.onmousedown=popLogic;
+
+        b.addEventListener('animationend',(e)=>{
+            if(e.animationName==='floatUp'){
+                if(b.parentNode)b.parentNode.removeChild(b);
+                if(opt===ninjaTarget&&isGameActive)nextNinjaQuestion();
+            }
+            if(e.animationName==='deflateWrong'||e.animationName==='popCorrect'){
+                if(b.parentNode)b.parentNode.removeChild(b);
+            }
+        });
+        document.getElementById('ninja-balloons-container').appendChild(b);
+    });
+}
+
+// ══════════════════
+// COUNTDOWN
+// ══════════════════
+function startCountdown(callback){
+    const overlay=document.getElementById('countdown-overlay');
+    const textEl=document.getElementById('countdown-text');
+    overlay.style.display='flex';
+    let count=3;textEl.innerText=count;
+    const iv=setInterval(()=>{
+        count--;
+        if(count>0){textEl.innerText=count;}
+        else if(count===0){textEl.innerText='BAŞLA!';}
+        else{clearInterval(iv);overlay.style.display='none';if(callback)callback();}
+    },1000);
+}
+
+function R(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+// ══════════════════
+// RACE QUESTIONS
+// ══════════════════
+function askQuestion(side){
+    let n1,n2,ans,text;
+    if(cfg.op==='toplama'){
+        if(cfg.diff==='kolay'){n1=R(1,9);n2=R(1,9);}
+        else if(cfg.diff==='orta'){n1=R(10,99);n2=R(1,9);if(Math.random()>.5){[n1,n2]=[n2,n1];}}
+        else{n1=R(10,99);n2=R(10,99);}
+        ans=n1+n2;text=`${n1} + ${n2}`;
+    }else if(cfg.op==='cikarma'){
+        if(cfg.diff==='kolay'){n1=R(1,9);n2=R(1,n1);}
+        else if(cfg.diff==='orta'){n1=R(10,99);n2=R(1,9);}
+        else{n1=R(10,99);n2=R(10,n1);}
+        ans=n1-n2;text=`${n1} - ${n2}`;
+    }else if(cfg.op==='carpma'){
+        if(cfg.diff==='kolay'){n1=R(1,9);n2=R(1,9);}
+        else if(cfg.diff==='orta'){n1=R(10,99);n2=R(1,9);}
+        else{n1=R(10,99);n2=R(10,99);}
+        ans=n1*n2;text=`${n1} × ${n2}`;
+    }else if(cfg.op==='bolme'){
+        let bolen,sonuc;
+        if(cfg.diff==='kolay'){bolen=R(1,9);sonuc=R(1,9);}
+        else if(cfg.diff==='orta'){bolen=R(2,9);sonuc=R(10,99);}
+        else{bolen=R(10,40);sonuc=R(10,40);}
+        n1=bolen*sonuc;n2=bolen;ans=sonuc;text=`${n1} ÷ ${n2}`;
+    }
+    targetVals[side]=ans;
+    document.getElementById(side==='L'?'q-left':'q-right').innerText=text+' = ?';
+    inputs[side]='';
+    document.getElementById(side==='L'?'ans-left':'ans-right').innerText='';
+}
+
+function pressKey(e,side,val){
+    if(e){e.preventDefault();animateBtn(e.currentTarget);}
+    if(!isGameActive)return;
+    if(inputs[side].length<5){inputs[side]+=val;getAnswerBox(side).innerText=inputs[side];}
+}
+function clearAns(e,side){
+    if(e){e.preventDefault();animateBtn(e.currentTarget);}
+    inputs[side]='';getAnswerBox(side).innerText='';
+}
+function submitAns(e,side){
+    if(e){e.preventDefault();animateBtn(e.currentTarget);}
+    if(!isGameActive||inputs[side]==='')return;
+    const val=parseInt(inputs[side]);
+    if(val===targetVals[side]){
+        const qEl=document.getElementById(side==='L'?'q-left':'q-right');
+        qEl.style.transition='color 0.1s';qEl.style.color='#2ED573';
+        setTimeout(()=>{qEl.style.color='';},200);
+        if(cfg.game==='halat'){if(side==='L')halatScore--;else halatScore++;}
+        else scores[side]++;
+        updateVisuals();checkWin();
+        if(isGameActive)askQuestion(side);
+    }else{
+        const box=getAnswerBox(side);
+        box.classList.add('shake');
+        setTimeout(()=>{box.classList.remove('shake');clearAns(null,side);},400);
+        if(cfg.game==='direk'){scores[side]=Math.max(0,scores[side]-1);updateVisuals();}
+    }
+}
+function getAnswerBox(side){return document.getElementById(side==='L'?'ans-left':'ans-right');}
+function animateBtn(btn){btn.classList.add('pressed');setTimeout(()=>btn.classList.remove('pressed'),120);}
+
+function updateVisuals(){
+    if(cfg.game==='halat'){
+        document.getElementById('halat-marker').style.left=(50+halatScore*10)+'%';
+    }else{
+        document.getElementById('fill-L').style.width=(scores.L/maxScore*100)+'%';
+        document.getElementById('fill-R').style.width=(scores.R/maxScore*100)+'%';
+        document.getElementById('score-text-L').innerText=scores.L;
+        document.getElementById('score-text-R').innerText=scores.R;
+    }
+}
+function checkWin(){
+    if(cfg.game==='halat'){
+        if(halatScore<=-5)showWinner(names.L);
+        else if(halatScore>=5)showWinner(names.R);
+    }else{
+        if(scores.L>=maxScore)showWinner(names.L);
+        else if(scores.R>=maxScore)showWinner(names.R);
+    }
+}
+function showWinner(text){
+    isGameActive=false;
+    const isSpecial=text.includes('Ninjasın')||text.includes('Tebrikler');
+    document.getElementById('winner-text').innerText=isSpecial?text:text+' KAZANDI!';
+    document.getElementById('rematch-btn').style.display=activeCarpimMode==='antrenman'?'none':'inline-block';
+    document.getElementById('modal').style.display='flex';
+    for(let i=0;i<5;i++)setTimeout(()=>createConfetti(Math.random()*window.innerWidth,Math.random()*window.innerHeight*0.5),i*150);
+}
+function resetGame(){
+    document.getElementById('modal').style.display='none';
+    if(activeCarpimMode)startCarpim(activeCarpimMode);
+    else prepareGame();
+}
+function toggleFullscreen(){
+    try{
+        const el=document.documentElement;
+        if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+            (el.requestFullscreen||el.webkitRequestFullscreen).call(el);
+        }else{
+            (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+        }
+    }catch(e){}
+}
+</script>
+</body>
+</html>
